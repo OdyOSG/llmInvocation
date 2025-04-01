@@ -72,19 +72,17 @@ def inputPrompt():
     """
     return input_prompt
 
-def getLLMDictionaries(dial_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.epam.com", api_version="2024-08-01-preview"):
+def getLLMDictionaries(
+  dial_key, 
+  temperature=0.0, 
+  azure_endpoint="https://ai-proxy.lab.epam.com", 
+  api_version="2024-08-01-preview"
+  ):
 
     from langchain_openai import AzureChatOpenAI
 
-    # Example llm_dict; ensure your LLM objects are callable with the provided prompt.
+
     llm_dict = {
-    #  "gpt-4o-mini": AzureChatOpenAI(
-    #      api_key=dial_key,
-    #      api_version="2024-08-01-preview",
-    #      azure_endpoint="https://ai-proxy.lab.epam.com",
-    #      model="gpt-4o-mini-2024-07-18",
-    #      temperature=0.0,
-    #  ),
         "claude_sonnet": AzureChatOpenAI(
             api_key=dial_key,
             api_version=api_version,

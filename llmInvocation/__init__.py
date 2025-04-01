@@ -1,1 +1,1 @@
-import llmInvocation
+import llmInvocation.invoke as invoke
