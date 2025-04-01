@@ -8,14 +8,14 @@ import xml.etree.ElementTree as ET
 
 
 setup(
-    name="LLM-engine",  
-    version="0.1",          
+    name="llmInvocation",  
+    version="0.0.1",          
     author="EPAM",
     author_email="",
     description="LLM engine to process results of the PubMed Search",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    #url="https://github.com/OdyOSG/pubMedSearch/tree/main",  
+    url="https://github.com/OdyOSG/llmInvocation",  
     packages=find_packages(),  
     install_requires=[
       "pyspark",
@@ -23,7 +23,6 @@ setup(
       "pandas",
       "langchain_openai",
       "requests",
-      "PubMedFetcher",
       "XlsxWriter",
       "IPython"
     ]
