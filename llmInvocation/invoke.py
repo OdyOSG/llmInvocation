@@ -82,7 +82,7 @@ def getLLMDictionaries(
 
     from langchain_openai import AzureChatOpenAI
     
-    if llm_model is None
+    if llm_model is None:
            llm_dict = 
            {
               "claude_sonnet": AzureChatOpenAI(
@@ -100,7 +100,7 @@ def getLLMDictionaries(
                   temperature=temperature,
               )
            }
-    elif llm_model == "claude"
+    elif llm_model == "claude":
            llm_dict = 
            {
               "claude_sonnet": AzureChatOpenAI(
@@ -111,7 +111,7 @@ def getLLMDictionaries(
                   temperature=temperature,
               )
            }
-    elif llm_model == "gpt-4o-full"
+    elif llm_model == "gpt-4o-full":
            llm_dict = 
            {
               "gpt-4o-full": AzureChatOpenAI(
@@ -122,7 +122,7 @@ def getLLMDictionaries(
                   temperature=temperature,
               )
            }
-    else
+    else:
       print("Wrong LLM model selected.")
   
     return llm_dict
