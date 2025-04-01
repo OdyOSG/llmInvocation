@@ -73,32 +73,58 @@ def inputPrompt():
     return input_prompt
 
 def getLLMDictionaries(
-  dial_key, 
-  temperature=0.0, 
-  azure_endpoint="https://ai-proxy.lab.epam.com", 
-  api_version="2024-08-01-preview"
-  ):
+    dial_key,
+    temperature=0.0, 
+    azure_endpoint="https://ai-proxy.lab.epam.com", 
+    api_version="2024-08-01-preview",
+    llm_model=None
+    ):
 
     from langchain_openai import AzureChatOpenAI
-
-
-    llm_dict = {
-        "claude_sonnet": AzureChatOpenAI(
-            api_key=dial_key,
-            api_version=api_version,
-            azure_endpoint=azure_endpoint,
-            model="anthropic.claude-v3-sonnet",
-            temperature=temperature,
-        ),
-        "gpt-4o-full": AzureChatOpenAI(
-            api_key=dial_key,
-            api_version=api_version,
-            azure_endpoint=azure_endpoint,
-            model="gpt-4o",
-            temperature=temperature,
-        ),
-    }
-
+    
+    if llm_model is None
+           llm_dict = 
+           {
+              "claude_sonnet": AzureChatOpenAI(
+                  api_key=dial_key,
+                  api_version=api_version,
+                  azure_endpoint=azure_endpoint,
+                  model="anthropic.claude-v3-sonnet",
+                  temperature=temperature,
+              ),
+              "gpt-4o-full": AzureChatOpenAI(
+                  api_key=dial_key,
+                  api_version=api_version,
+                  azure_endpoint=azure_endpoint,
+                  model="gpt-4o",
+                  temperature=temperature,
+              )
+           }
+    elif llm_model == "claude"
+           llm_dict = 
+           {
+              "claude_sonnet": AzureChatOpenAI(
+                  api_key=dial_key,
+                  api_version=api_version,
+                  azure_endpoint=azure_endpoint,
+                  model="anthropic.claude-v3-sonnet",
+                  temperature=temperature,
+              )
+           }
+    elif llm_model == "gpt-4o-full"
+           llm_dict = 
+           {
+              "gpt-4o-full": AzureChatOpenAI(
+                  api_key=dial_key,
+                  api_version=api_version,
+                  azure_endpoint=azure_endpoint,
+                  model="gpt-4o",
+                  temperature=temperature,
+              )
+           }
+    else
+      print("Wrong LLM model selected.")
+  
     return llm_dict
 
 #####################################################
@@ -165,7 +191,11 @@ def initialize_logging():
     logging.getLogger("py4j.clientserver").setLevel(logging.ERROR)
     logging.getLogger("org.apache.spark").setLevel(logging.ERROR)
 
-def load_existing_delta_data(table_name, spark):
+
+def load_existing_delta_data(
+    table_name, 
+    spark
+    ):
     """
     Loads an existing Delta table into a Pandas DataFrame.
     
@@ -191,9 +221,15 @@ def load_existing_delta_data(table_name, spark):
     except Exception as e:
         existing_df = pd.DataFrame()
         logging.error(f"Error loading existing data: {e}")
+        
     return existing_df
 
-def write_results_to_delta_table(merged_df, table_name, spark):
+
+def write_results_to_delta_table(
+    merged_df, 
+    table_name, 
+    spark
+    ):
     """
     Writes a merged Pandas DataFrame to a Spark Delta table.
     
@@ -237,6 +273,7 @@ def write_results_to_delta_table(merged_df, table_name, spark):
         logging.debug(f"Results written to Spark table: {table_name}")
     except Exception as e:
         logging.error(f"Error writing to Delta table: {e}")
+        
     return merged_df
 
 
@@ -254,13 +291,22 @@ def get_processed_pmids(existing_df):
     """
     if not existing_df.empty and "pmcid" in existing_df.columns:
         return set(existing_df["pmcid"].unique())
+      
     return set()
 
 ###############################################
 # SECTION 2: LLM Invocation and Helper Functions
 ###############################################
 
-async def async_invoke_llm(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
+async def async_invoke_llm(
+    llm_instance, 
+    prompt, 
+    pmcid, 
+    llm_name, 
+    logger, 
+    attempts=5, 
+    sleep_time=1
+    ):
     """
     Asynchronously calls an LLM instance with a given prompt and retries on error.
     
@@ -296,9 +342,15 @@ async def async_invoke_llm(llm_instance, prompt, pmcid, llm_name, logger, attemp
             error_msg = str(e)
             logger.error(f"PMCID {pmcid}: LLM '{llm_name}' error on attempt {attempt}: {error_msg}")
             await asyncio.sleep(sleep_time)
+            
     return None, error_msg
 
-def create_prompt(row, input_prompt, text_col):
+
+def create_prompt(
+    row, 
+    input_prompt, 
+    text_col
+    ):
     """
     Builds the prompt to be sent to an LLM by combining the base prompt with row-specific text.
     
@@ -313,9 +365,19 @@ def create_prompt(row, input_prompt, text_col):
     pmcid = row["pmcid"]
     text = row.get(text_col, "")
     prompt = f"{input_prompt}\n\n{text}"
+    
     return pmcid, prompt
 
-async def call_llm(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
+
+async def call_llm(
+    llm_instance, 
+    prompt, 
+    pmcid, 
+    llm_name, 
+    logger, 
+    attempts=5, 
+    sleep_time=1
+    ):
     """
     Helper function to asynchronously call an LLM.
     
@@ -327,7 +389,15 @@ async def call_llm(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sl
     return await async_invoke_llm(llm_instance, prompt, pmcid, llm_name, logger, attempts, sleep_time)
 
 
-def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex):
+def parse_llm_response(
+    raw_llm_output, 
+    pmcid, 
+    llm_name, 
+    prompt, 
+    error_log, 
+    regex
+    ):
+    
     results = []
     if raw_llm_output and not error_log:
         for line in raw_llm_output.splitlines():
@@ -394,10 +464,19 @@ def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex
             "llm_raw_llm_output": raw_llm_output,
             "error_log": error_log,
         })
+        
     return results
 
 
-async def process_llm_for_pmcid(row, llm_name, llm_instance, input_prompt, text_col, logger, regex):
+async def process_llm_for_pmcid(
+    row, 
+    llm_name, 
+    llm_instance, 
+    input_prompt, 
+    text_col, 
+    logger, 
+    regex
+    ):
     """
     Processes a single row of data for one specific LLM.
     
@@ -423,9 +502,18 @@ async def process_llm_for_pmcid(row, llm_name, llm_instance, input_prompt, text_
     raw_llm_output, error_log = await call_llm(llm_instance, prompt, pmcid, llm_name, logger)
     results = parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex)
     logger.info(f"Finished processing for PMCID: {pmcid} with LLM: {llm_name}")
+    
     return results
 
-async def process_pmcid_row_async(row, llm_dict, input_prompt, text_col, logger, regex):
+
+async def process_pmcid_row_async(
+    row, 
+    llm_dict, 
+    input_prompt, 
+    text_col, 
+    logger, 
+    regex
+    ):
     """
     Processes a single row asynchronously for all LLMs provided.
     
@@ -492,13 +580,22 @@ async def process_pmcid_row_async(row, llm_dict, input_prompt, text_col, logger,
             "error_log": None,
         })
     logger.info(f"Completed processing for PMCID: {pmcid}")
+    
     return aggregated_results
 
 ###############################################
 # SECTION 3: Row and DataFrame Processing
 ###############################################
 
-async def process_df_with_llms_async(df, llm_dict, input_prompt, text_col, saved_table_name, spark, logger):
+async def process_df_with_llms_async(
+    df, 
+    llm_dict, 
+    input_prompt, 
+    text_col, 
+    saved_table_name, 
+    spark, 
+    logger
+    ):
     """
     Processes an entire DataFrame asynchronously using the provided LLMs.
     
@@ -577,11 +674,18 @@ async def process_df_with_llms_async(df, llm_dict, input_prompt, text_col, saved
     
     # Return the final cumulative DataFrame from the Delta table.
     cumulative_df = load_existing_delta_data(saved_table_name, spark)  ## CHECK HERE
+    
     return cumulative_df
 
-def process_df_with_llms(df, llm_dict, input_prompt, text_col="methods",
-                         saved_table_name="odysseus.pubmed.ds0084_literature_search_with_llm_interpretation",
-                         spark=None):
+
+def process_df_with_llms(
+    df, 
+    llm_dict, 
+    input_prompt, 
+    saved_table_name,
+    text_col="methods",
+    spark=None
+    ):
     """
     Synchronous entry point to process a DataFrame through multiple LLMs.
     
@@ -608,6 +712,7 @@ def process_df_with_llms(df, llm_dict, input_prompt, text_col="methods",
     from pyspark.sql import SparkSession
     initialize_logging()
     logger = logging.getLogger(__name__)
+    
     # Create a Spark session if one is not provided.
     if spark is None:
         spark = SparkSession.builder.getOrCreate()
@@ -628,4 +733,5 @@ def process_df_with_llms(df, llm_dict, input_prompt, text_col="methods",
         result_df = loop.run_until_complete(
             process_df_with_llms_async(df, llm_dict, input_prompt, text_col, saved_table_name, spark, logger)
         )
+        
     return result_df
