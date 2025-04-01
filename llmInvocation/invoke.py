@@ -83,8 +83,7 @@ def getLLMDictionaries(
     from langchain_openai import AzureChatOpenAI
     
     if llm_model is None:
-           llm_dict = 
-           {
+         llm_dict = {
               "claude_sonnet": AzureChatOpenAI(
                   api_key=dial_key,
                   api_version=api_version,
@@ -99,29 +98,27 @@ def getLLMDictionaries(
                   model="gpt-4o",
                   temperature=temperature,
               )
-           }
+                  }
     elif llm_model == "claude":
-           llm_dict = 
-           {
-              "claude_sonnet": AzureChatOpenAI(
-                  api_key=dial_key,
-                  api_version=api_version,
-                  azure_endpoint=azure_endpoint,
-                  model="anthropic.claude-v3-sonnet",
-                  temperature=temperature,
-              )
-           }
+           llm_dict = {
+                "claude_sonnet": AzureChatOpenAI(
+                    api_key=dial_key,
+                    api_version=api_version,
+                    azure_endpoint=azure_endpoint,
+                    model="anthropic.claude-v3-sonnet",
+                    temperature=temperature,
+                )
+                      }
     elif llm_model == "gpt-4o-full":
-           llm_dict = 
-           {
-              "gpt-4o-full": AzureChatOpenAI(
-                  api_key=dial_key,
-                  api_version=api_version,
-                  azure_endpoint=azure_endpoint,
-                  model="gpt-4o",
-                  temperature=temperature,
-              )
-           }
+           llm_dict =  {
+                "gpt-4o-full": AzureChatOpenAI(
+                    api_key=dial_key,
+                    api_version=api_version,
+                    azure_endpoint=azure_endpoint,
+                    model="gpt-4o",
+                    temperature=temperature,
+                )
+                       }
     else:
       print("Wrong LLM model selected.")
   
