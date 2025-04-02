@@ -1,6 +1,3 @@
-import time
-import re
-
 def inputPrompt():
     """
     Returns the input prompt instructions.
@@ -64,6 +61,7 @@ def inputPrompt():
     """
     return input_prompt.strip()
 
+
 def getLLMmodel(dial_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.epam.com", api_version="2024-08-01-preview", llm_model=None):
     from langchain_openai import AzureChatOpenAI
     if llm_model is None:
@@ -108,6 +106,7 @@ def getLLMmodel(dial_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.
         llm_dict = {}
     return llm_dict
 
+
 def create_prompt(row, input_prompt, text_col):
     """
     Combines the base prompt with row-specific text.
@@ -117,10 +116,12 @@ def create_prompt(row, input_prompt, text_col):
     prompt = f"{input_prompt}\n\n{text}"
     return pmcid, prompt
 
+
 def invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
     """
     Synchronously calls an LLM instance with retries on error.
     """
+    import time
     for attempt in range(1, attempts + 1):
         logger.debug(f"PMCID {pmcid}: Attempt {attempt} for LLM '{llm_name}'.")
         try:
@@ -136,11 +137,13 @@ def invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, s
             time.sleep(sleep_time)
     return None, error_msg
 
+
 def call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
     """
     Wrapper for synchronous LLM invocation.
     """
     return invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts, sleep_time)
+
 
 def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex):
     """
@@ -188,6 +191,7 @@ def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex
         })
     return results
 
+
 def process_llm_for_pmcid_sync(row, llm_name, llm_instance, input_prompt, text_col, logger, regex):
     """
     Processes a single row for a specific LLM synchronously.
@@ -199,6 +203,7 @@ def process_llm_for_pmcid_sync(row, llm_name, llm_instance, input_prompt, text_c
     logger.info(f"Finished processing for PMCID: {pmcid} with LLM: {llm_name}")
     return results
 
+
 def process_pmcid_row_sync(row, llm_dict, input_prompt, text_col, logger, regex):
     """
     Processes a single row synchronously for all LLMs and aggregates the responses.
@@ -207,7 +212,6 @@ def process_pmcid_row_sync(row, llm_dict, input_prompt, text_col, logger, regex)
     for llm_name, llm_instance in llm_dict.items():
         res = process_llm_for_pmcid_sync(row, llm_name, llm_instance, input_prompt, text_col, logger, regex)
         all_results.extend(res)
-    # Group results by (pmcid, llm, output_type)
     groups = {}
     for res in all_results:
         key = (res["pmcid"], res["llm"], res["output_type"])

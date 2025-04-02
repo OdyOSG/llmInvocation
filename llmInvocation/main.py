@@ -1,20 +1,27 @@
-import re
-import pandas as pd
-from data_management import initialize_logging, load_existing_delta_data, write_results_to_delta_table, get_processed_pmids
-from llm_invocation import inputPrompt, getLLMmodel, process_pmcid_row_sync
-
 def main():
+    # All necessary imports are done within the function
+    import re
+    import pandas as pd
+    from data_management import (
+        initialize_logging,
+        load_existing_delta_data,
+        write_results_to_delta_table,
+        get_processed_pmids
+    )
+    from llm_invocation import (
+        inputPrompt,
+        getLLMmodel,
+        process_pmcid_row_sync
+    )
+    
     logger = initialize_logging()
     
-    # Example: Load existing data from a Delta table (using your SparkSession)
-    # spark = <initialize your Spark session here>
-    # existing_df = load_existing_delta_data("your_table_name", spark)
-    # For demonstration, assume an empty DataFrame:
+    # For demonstration, assume an empty DataFrame
     existing_df = pd.DataFrame()
     processed_pmids = get_processed_pmids(existing_df)
     
-    # Prepare LLM models
-    dial_key = "YOUR_API_KEY"  # Replace with your API key
+    # Prepare LLM models (replace with your actual API key)
+    dial_key = "YOUR_API_KEY"
     llm_dict = getLLMmodel(dial_key)
     
     # Get the input prompt

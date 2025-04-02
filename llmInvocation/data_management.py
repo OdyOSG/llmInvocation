@@ -1,11 +1,5 @@
-import logging
-import pandas as pd
-from pyspark.sql.types import StructType, StructField, StringType
-
 def initialize_logging():
-    """
-    Sets up logging configuration.
-    """
+    import logging
     class ProgressAndErrorFilter(logging.Filter):
         def filter(self, record):
             if record.levelno >= logging.ERROR:
@@ -28,9 +22,8 @@ def initialize_logging():
     return logger
 
 def load_existing_delta_data(table_name, spark):
-    """
-    Loads an existing Delta table into a Pandas DataFrame.
-    """
+    import logging
+    import pandas as pd
     try:
         if spark.catalog.tableExists(table_name):
             existing_df = spark.table(table_name).toPandas()
@@ -39,14 +32,14 @@ def load_existing_delta_data(table_name, spark):
             existing_df = pd.DataFrame()
             logging.debug("No existing table found. Starting fresh.")
     except Exception as e:
+        import pandas as pd
         existing_df = pd.DataFrame()
         logging.error(f"Error loading existing data: {e}")
     return existing_df
 
 def write_results_to_delta_table(merged_df, table_name, spark):
-    """
-    Writes a merged Pandas DataFrame to a Spark Delta table.
-    """
+    import logging
+    from pyspark.sql.types import StructType, StructField, StringType
     try:
         schema = StructType([
             StructField("pmcid", StringType(), True),
@@ -68,9 +61,7 @@ def write_results_to_delta_table(merged_df, table_name, spark):
     return merged_df
 
 def get_processed_pmids(existing_df):
-    """
-    Extracts PMCID values from an existing DataFrame.
-    """
+    import pandas as pd
     if not existing_df.empty and "pmcid" in existing_df.columns:
         return set(existing_df["pmcid"].unique())
     return set()
