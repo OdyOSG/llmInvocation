@@ -6,7 +6,7 @@ from .data_management import (
 )
 
 from .llm_invocation import (
-    inputPrompt,
+    defaultPromptForCohortExtraction,
     getLLMmodel,
     create_prompt,
     invoke_llm_sync,
@@ -21,7 +21,7 @@ __all__ = [
     "load_existing_delta_data",
     "write_results_to_delta_table",
     "get_processed_pmids",
-    "inputPrompt",
+    "defaultPromptForCohortExtraction",
     "getLLMmodel",
     "create_prompt",
     "invoke_llm_sync",

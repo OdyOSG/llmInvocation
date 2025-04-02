@@ -1,4 +1,4 @@
-def main():
+def main(api_key):
     # All necessary imports are done within the function
     import re
     import pandas as pd
@@ -9,7 +9,7 @@ def main():
         get_processed_pmids
     )
     from llm_invocation import (
-        inputPrompt,
+        defaultPromptForCohortExtraction,
         getLLMmodel,
         process_pmcid_row_sync
     )
@@ -20,12 +20,11 @@ def main():
     existing_df = pd.DataFrame()
     processed_pmids = get_processed_pmids(existing_df)
     
-    # Prepare LLM models (replace with your actual API key)
-    dial_key = "YOUR_API_KEY"
-    llm_dict = getLLMmodel(dial_key)
+    # Prepare LLM models using the provided API key
+    llm_dict = getLLMmodel(api_key)
     
     # Get the input prompt
-    base_prompt = inputPrompt()
+    base_prompt = defaultPromptForCohortExtraction()
     
     # Compile a regex to clean output types (e.g., remove non-alphanumeric characters)
     regex = re.compile(r'[^a-zA-Z0-9_ ]')
@@ -50,4 +49,5 @@ def main():
         print(res)
 
 if __name__ == "__main__":
-    main()
+    # Replace "YOUR_API_KEY" with your actual API key when calling the function.
+    main("YOUR_API_KEY")

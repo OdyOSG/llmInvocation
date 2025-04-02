@@ -1,8 +1,10 @@
-def inputPrompt():
+def defaultPromptForCohortExtraction():
     """
-    Returns the input prompt instructions.
+    Returns the prompt instructions for extracting cohort details from the Methods/Materials section
+    of a scientific article. The prompt instructs the LLM to parse the text into 27 specific categories,
+    each corresponding to one row in a single markdown table.
     """
-    input_prompt = """
+    prompt = """
     **SYSTEM INSTRUCTIONS (FOLLOW EXACTLY)**
     1. You are given the Methods/Materials section of a scientific article describing real-world patient selection and cohort creation.
     2. You must extract information into exactly 27 specific categories (listed below). Each category must correspond to one row in **a single markdown table**.
@@ -59,22 +61,23 @@ def inputPrompt():
     **USER PROMPT**:
        Extract the relevant details from the following text based on the categories above. Provide each category as one row in the single markdown table described, following the rules exactly.
     """
-    return input_prompt.strip()
+    return prompt.strip()
 
 
-def getLLMmodel(dial_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.epam.com", api_version="2024-08-01-preview", llm_model=None):
+
+def getLLMmodel(api_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.epam.com", api_version="2024-08-01-preview", llm_model=None):
     from langchain_openai import AzureChatOpenAI
     if llm_model is None:
         llm_dict = {
             "claude_sonnet": AzureChatOpenAI(
-                api_key=dial_key,
+                api_key=api_key,
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
                 model="anthropic.claude-v3-sonnet",
                 temperature=temperature,
             ),
             "gpt-4o-full": AzureChatOpenAI(
-                api_key=dial_key,
+                api_key=api_key,
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
                 model="gpt-4o",
@@ -84,7 +87,7 @@ def getLLMmodel(dial_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.
     elif llm_model == "claude":
         llm_dict = {
             "claude_sonnet": AzureChatOpenAI(
-                api_key=dial_key,
+                api_key=api_key,
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
                 model="anthropic.claude-v3-sonnet",
@@ -94,7 +97,7 @@ def getLLMmodel(dial_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.
     elif llm_model == "gpt-4o-full":
         llm_dict = {
             "gpt-4o-full": AzureChatOpenAI(
-                api_key=dial_key,
+                api_key=api_key,
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
                 model="gpt-4o",
@@ -105,6 +108,7 @@ def getLLMmodel(dial_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.
         print("Wrong LLM model selected.")
         llm_dict = {}
     return llm_dict
+
 
 
 def create_prompt(row, input_prompt, text_col):
