@@ -24,7 +24,13 @@ def main(
         process_pmcid_row_sync
     )
     
+    # Initialize logging
     logger = initialize_logging()
+    
+    # Select columns
+    df = df[["pmcid", "methods"]]
+    # Remove rows with empty "methods" column
+    df = df[df["methods"].str.strip().str.len() > 0]
     
     # Load initial Delta table to filter out already processed PMCID values
     existing_df = load_existing_delta_data(table_name=tableName, spark=spark)
@@ -43,7 +49,7 @@ def main(
       azure_endpoint=azure_endpoint, 
       api_version=api_version,
       temperature=temperature
-      )
+    )
     
     # Get the input prompt
     base_prompt = defaultPromptForCohortExtraction()
@@ -53,16 +59,14 @@ def main(
     
     
     all_results = []
-    for _, row in df.iterrows():
+    for _, row in new_df.iterrows():
         results = process_pmcid_row_sync(row, llm_dict, base_prompt, columnName, logger, regex)
         all_results.extend(results)
     
     # Write aggregated results to a Delta table using Spark:
-    merged_df = write_results_to_delta_table(pd.DataFrame(all_results), tableName, spark)
+    write_results_to_delta_table(pd.DataFrame(all_results), tableName, spark)
     
-    # For demonstration, print the results
-    for res in all_results:
-        print(res)
+    return(pd.DataFrame(all_results))
 
 if __name__ == "__main__":
     main(api_key)
