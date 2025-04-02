@@ -6,13 +6,13 @@ def main(
     # All necessary imports are done within the function
     import re
     import pandas as pd
-    from data_management import (
+    from .data_management import (
         initialize_logging,
         load_existing_delta_data,
         write_results_to_delta_table,
         get_processed_pmids
     )
-    from llm_invocation import (
+    from .llm_invocation import (
         defaultPromptForCohortExtraction,
         getLLMmodel,
         process_pmcid_row_sync
