@@ -24,7 +24,7 @@ def main(
     logger = initialize_logging()
     
     # Load initial Delta table to filter out already processed PMCID values
-    existing_df = load_existing_delta_data(saved_table_name=tableName, spark=spark)
+    existing_df = load_existing_delta_data(table_name=tableName, spark=spark)
     processed_pmids = get_processed_pmids(existing_df)
     
     # Filter out rows that have already been processed.
