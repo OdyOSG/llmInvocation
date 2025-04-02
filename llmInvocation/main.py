@@ -1,4 +1,8 @@
-def main(api_key):
+def main(
+  api_key, 
+  df,
+  columnName
+):
     # All necessary imports are done within the function
     import re
     import pandas as pd
@@ -17,8 +21,8 @@ def main(api_key):
     logger = initialize_logging()
     
     # For demonstration, assume an empty DataFrame
-    existing_df = pd.DataFrame()
-    processed_pmids = get_processed_pmids(existing_df)
+    #existing_df = pd.DataFrame()
+    processed_pmids = get_processed_pmids(df)
     
     # Prepare LLM models using the provided API key
     llm_dict = getLLMmodel(api_key)
@@ -30,15 +34,15 @@ def main(api_key):
     regex = re.compile(r'[^a-zA-Z0-9_ ]')
     
     # Example DataFrame with rows to process (each row must have a 'pmcid' and a text column, e.g., 'article_text')
-    data = [
-        {"pmcid": "PMC12345", "article_text": "Sample text for processing."},
-        {"pmcid": "PMC67890", "article_text": "Another sample text for LLM."}
-    ]
-    df = pd.DataFrame(data)
+    # data = [
+    #     {"pmcid": "PMC12345", "article_text": "Sample text for processing."},
+    #     {"pmcid": "PMC67890", "article_text": "Another sample text for LLM."}
+    # ]
+    # df = pd.DataFrame(data)
     
     all_results = []
     for _, row in df.iterrows():
-        results = process_pmcid_row_sync(row, llm_dict, base_prompt, "article_text", logger, regex)
+        results = process_pmcid_row_sync(row, llm_dict, base_prompt, columnName, logger, regex)
         all_results.extend(results)
     
     # Optionally, write aggregated results to a Delta table using Spark:
@@ -50,4 +54,4 @@ def main(api_key):
 
 if __name__ == "__main__":
     # Replace "YOUR_API_KEY" with your actual API key when calling the function.
-    main("YOUR_API_KEY")
+    main(api_key)
