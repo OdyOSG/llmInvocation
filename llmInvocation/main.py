@@ -3,7 +3,7 @@ def main(
   df,
   columnName,
   tableName,
-  llmModel=None,
+  llm_model=None,
   spark=None
 ):
     # All necessary imports are done within the function
@@ -34,7 +34,7 @@ def main(
     logger.info(f"Processing {total_tasks} new PMCID(s) out of {df.shape[0]} total.")
     
     # Prepare LLM models using the provided API key
-    llm_dict = getLLMmodel(api_key=api_key, llmModel=llmModel)
+    llm_dict = getLLMmodel(api_key=api_key, llm_model=llm_model)
     
     # Get the input prompt
     base_prompt = defaultPromptForCohortExtraction()
