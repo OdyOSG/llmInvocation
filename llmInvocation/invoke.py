@@ -1,6 +1,6 @@
 def inputPrompt():
 
-    # Define your input prompt.
+    # Define your input prompt
     input_prompt = """
     **SYSTEM INSTRUCTIONS (FOLLOW EXACTLY)**
 
@@ -72,13 +72,13 @@ def inputPrompt():
     """
     return input_prompt
 
-def getLLMDictionaries(
-    dial_key,
-    temperature=0.0, 
-    azure_endpoint="https://ai-proxy.lab.epam.com", 
-    api_version="2024-08-01-preview",
-    llm_model=None
-    ):
+def getLLMmodel(
+  dial_key,
+  temperature=0.0, 
+  azure_endpoint="https://ai-proxy.lab.epam.com", 
+  api_version="2024-08-01-preview",
+  llm_model=None
+):
 
     from langchain_openai import AzureChatOpenAI
     
@@ -190,9 +190,9 @@ def initialize_logging():
 
 
 def load_existing_delta_data(
-    table_name, 
-    spark
-    ):
+  table_name, 
+  spark
+):
     """
     Loads an existing Delta table into a Pandas DataFrame.
     
@@ -223,10 +223,10 @@ def load_existing_delta_data(
 
 
 def write_results_to_delta_table(
-    merged_df, 
-    table_name, 
-    spark
-    ):
+  merged_df, 
+  table_name, 
+  spark
+):
     """
     Writes a merged Pandas DataFrame to a Spark Delta table.
     
@@ -296,14 +296,14 @@ def get_processed_pmids(existing_df):
 ###############################################
 
 async def async_invoke_llm(
-    llm_instance, 
-    prompt, 
-    pmcid, 
-    llm_name, 
-    logger, 
-    attempts=5, 
-    sleep_time=1
-    ):
+  llm_instance, 
+  prompt, 
+  pmcid, 
+  llm_name, 
+  logger, 
+  attempts=5, 
+  sleep_time=1
+):
     """
     Asynchronously calls an LLM instance with a given prompt and retries on error.
     
@@ -344,10 +344,10 @@ async def async_invoke_llm(
 
 
 def create_prompt(
-    row, 
-    input_prompt, 
-    text_col
-    ):
+  row, 
+  input_prompt, 
+  text_col
+):
     """
     Builds the prompt to be sent to an LLM by combining the base prompt with row-specific text.
     
@@ -367,14 +367,14 @@ def create_prompt(
 
 
 async def call_llm(
-    llm_instance, 
-    prompt, 
-    pmcid, 
-    llm_name, 
-    logger, 
-    attempts=5, 
-    sleep_time=1
-    ):
+  llm_instance, 
+  prompt, 
+  pmcid, 
+  llm_name, 
+  logger, 
+  attempts=5, 
+  sleep_time=1
+):
     """
     Helper function to asynchronously call an LLM.
     
@@ -387,13 +387,13 @@ async def call_llm(
 
 
 def parse_llm_response(
-    raw_llm_output, 
-    pmcid, 
-    llm_name, 
-    prompt, 
-    error_log, 
-    regex
-    ):
+  raw_llm_output, 
+  pmcid, 
+  llm_name, 
+  prompt, 
+  error_log, 
+  regex
+):
     
     results = []
     if raw_llm_output and not error_log:
@@ -466,14 +466,14 @@ def parse_llm_response(
 
 
 async def process_llm_for_pmcid(
-    row, 
-    llm_name, 
-    llm_instance, 
-    input_prompt, 
-    text_col, 
-    logger, 
-    regex
-    ):
+  row, 
+  llm_name, 
+  llm_instance, 
+  input_prompt, 
+  text_col, 
+  logger, 
+  regex
+):
     """
     Processes a single row of data for one specific LLM.
     
@@ -504,13 +504,13 @@ async def process_llm_for_pmcid(
 
 
 async def process_pmcid_row_async(
-    row, 
-    llm_dict, 
-    input_prompt, 
-    text_col, 
-    logger, 
-    regex
-    ):
+  row, 
+  llm_dict, 
+  input_prompt, 
+  text_col, 
+  logger, 
+  regex
+):
     """
     Processes a single row asynchronously for all LLMs provided.
     
@@ -585,14 +585,14 @@ async def process_pmcid_row_async(
 ###############################################
 
 async def process_df_with_llms_async(
-    df, 
-    llm_dict, 
-    input_prompt, 
-    text_col, 
-    saved_table_name, 
-    spark, 
-    logger
-    ):
+  df, 
+  llm_dict, 
+  input_prompt, 
+  text_col, 
+  saved_table_name, 
+  spark, 
+  logger
+):
     """
     Processes an entire DataFrame asynchronously using the provided LLMs.
     
@@ -624,10 +624,16 @@ async def process_df_with_llms_async(
 
     # Create an asynchronous lock to serialize Delta table writes.
     lock = asyncio.Lock()
+    
+    # Select columns
+    df = df[["pmcid", "methods"]]
+    # Remove rows with empty "methods" column
+    df = df[df["methods"].str.strip().str.len() > 0]
 
     # Load initial Delta table to filter out already processed PMCID values.
     existing_df_initial = load_existing_delta_data(saved_table_name, spark)
     processed_pmids = get_processed_pmids(existing_df_initial)
+    
     # Filter out rows that have already been processed.
     new_df = df[~df["pmcid"].isin(processed_pmids)].copy()
     total_tasks = new_df.shape[0]
@@ -670,19 +676,19 @@ async def process_df_with_llms_async(
         )
     
     # Return the final cumulative DataFrame from the Delta table.
-    cumulative_df = load_existing_delta_data(saved_table_name, spark)  ## CHECK HERE
+    cumulative_df = load_existing_delta_data(saved_table_name, spark)
     
     return cumulative_df
 
 
 def process_df_with_llms(
-    df, 
-    llm_dict, 
-    input_prompt, 
-    saved_table_name,
-    text_col="methods",
-    spark=None
-    ):
+  df, 
+  llm_dict, 
+  input_prompt, 
+  saved_table_name,
+  text_col="methods",
+  spark=None
+):
     """
     Synchronous entry point to process a DataFrame through multiple LLMs.
     
