@@ -64,9 +64,16 @@ def defaultPromptForCohortExtraction():
     return prompt.strip()
 
 
-
-def getLLMmodel(api_key, temperature=0.0, azure_endpoint="https://ai-proxy.lab.epam.com", api_version="2024-08-01-preview", llm_model=None):
+def getLLMmodel(
+  api_key, 
+  azure_endpoint, 
+  api_version, 
+  temperature=0.0, 
+  llm_model=None
+):
+  
     from langchain_openai import AzureChatOpenAI
+    
     if llm_model is None:
         llm_dict = {
             "claude_sonnet": AzureChatOpenAI(

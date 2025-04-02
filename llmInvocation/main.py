@@ -3,6 +3,9 @@ def main(
   df,
   columnName,
   tableName,
+  azure_endpoint, 
+  api_version, 
+  temperature=0.0, 
   llm_model=None,
   spark=None
 ):
@@ -34,7 +37,13 @@ def main(
     logger.info(f"Processing {total_tasks} new PMCID(s) out of {df.shape[0]} total.")
     
     # Prepare LLM models using the provided API key
-    llm_dict = getLLMmodel(api_key=api_key, llm_model=llm_model)
+    llm_dict = getLLMmodel(
+      api_key=api_key, 
+      llm_model=llm_model, 
+      azure_endpoint=azure_endpoint, 
+      api_version=api_version,
+      temperature=temperature
+      )
     
     # Get the input prompt
     base_prompt = defaultPromptForCohortExtraction()
