@@ -31,6 +31,18 @@ def main(
     df = df[["pmcid", "methods"]]
     # Remove rows with empty "methods" column
     df = df[df["methods"].str.strip().str.len() > 0]
+
+    try:
+    # Check if there's at least one row in 'methods' that is not empty or None
+    if not any(
+        (isinstance(value, str) and value.strip() != "") or (value is not None and not isinstance(value, str))
+        for value in df["methods"]
+    ):
+        raise ValueError("The 'methods' column must have at least one populated row.")
+    else:
+        print("The 'methods' column is properly populated.")
+    except ValueError as e:
+    print("Caught exception:", e)
     
     # Load initial Delta table to filter out already processed PMCID values
     existing_df = load_existing_delta_data(table_name=tableName, spark=spark)
