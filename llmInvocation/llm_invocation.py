@@ -1,4 +1,12 @@
-def defaultPromptForCohortExtraction():
+import logging
+import time
+import re
+from langchain_openai import AzureChatOpenAI
+
+logger = logging.getLogger(__name__)
+
+
+def default_prompt_for_cohort_extraction():
     """
     Returns the prompt instructions for extracting cohort details from the Methods/Materials section
     of a scientific article. The prompt instructs the LLM to parse the text into 27 specific categories,
@@ -17,8 +25,8 @@ def defaultPromptForCohortExtraction():
     5. If a category is **mentioned** but does **not** include any direct quotes, place `""` in the **verbatim** column and briefly explain in the **interpretation** column.
        If a category is **not mentioned at all**, place `""` in the **verbatim** column and write “Not mentioned.” in the **interpretation** column.
     6. **Special case for `medical_codes`**:
-       - If ICD, SNOMED, CPT-4, HCPCS, or ATC codes are present, place them (in quotes) under **verbatim** and set **interpretation** to `codes_reported = Yes.`
-       - If none, set **verbatim** = `""` and **interpretation** = `codes_reported = No.`
+       - If ICD, SNOMED, CPT-4, HCPCS, or ATC codes are present, place them (in quotes) under **verbatim** and set **interpretation** to `codes_reported = Yes.` 
+       - If none, set **verbatim** = `""` and **interpretation** = `codes_reported = No.` 
     7. **OUTPUT FORMAT** — You must return **only** one markdown table with the following columns:
        - A header row exactly like this: 
          `| category | verbatim | interpretation |`
@@ -64,16 +72,10 @@ def defaultPromptForCohortExtraction():
     return prompt.strip()
 
 
-def getLLMmodel(
-  api_key, 
-  azure_endpoint, 
-  api_version, 
-  temperature=0.0, 
-  llm_model=None
-):
-  
-    from langchain_openai import AzureChatOpenAI
-    
+def get_llm_model(api_key, azure_endpoint, api_version, temperature=0.0, llm_model=None):
+    """
+    Returns a dictionary of LLM models based on provided parameters.
+    """
     if llm_model is None:
         llm_dict = {
             "claude_sonnet": AzureChatOpenAI(
@@ -89,7 +91,7 @@ def getLLMmodel(
                 azure_endpoint=azure_endpoint,
                 model="gpt-4o",
                 temperature=temperature,
-            )
+            ),
         }
     elif llm_model == "claude":
         llm_dict = {
@@ -112,15 +114,15 @@ def getLLMmodel(
             )
         }
     else:
-        print("Wrong LLM model selected.")
+        logger.error("Wrong LLM model selected: %s", llm_model)
         llm_dict = {}
     return llm_dict
-
 
 
 def create_prompt(row, input_prompt, text_col):
     """
     Combines the base prompt with row-specific text.
+    Returns the PMCID and combined prompt.
     """
     pmcid = row["pmcid"]
     text = row.get(text_col, "")
@@ -131,22 +133,29 @@ def create_prompt(row, input_prompt, text_col):
 def invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
     """
     Synchronously calls an LLM instance with retries on error.
+    Returns the raw LLM output and error log (if any).
     """
-    import time
     for attempt in range(1, attempts + 1):
-        logger.debug(f"PMCID {pmcid}: Attempt {attempt} for LLM '{llm_name}'.")
+        logger.debug("PMCID %s: Attempt %d for LLM '%s'.", pmcid, attempt, llm_name)
         try:
             start = time.time()
             output_obj = llm_instance.invoke(prompt)
-            raw_llm_output = output_obj.content if hasattr(output_obj, "content") else str(output_obj)
+            raw_llm_output = (
+                output_obj.content if hasattr(output_obj, "content") else str(output_obj)
+            )
             elapsed = time.time() - start
-            logger.debug(f"PMCID {pmcid}: LLM '{llm_name}' succeeded in {elapsed:.2f} sec on attempt {attempt}.")
+            logger.debug(
+                "PMCID %s: LLM '%s' succeeded in %.2f sec on attempt %d.",
+                pmcid,
+                llm_name,
+                elapsed,
+                attempt,
+            )
             return raw_llm_output, None
         except Exception as e:
-            error_msg = str(e)
-            logger.error(f"PMCID {pmcid}: LLM '{llm_name}' error on attempt {attempt}: {error_msg}")
+            logger.exception("PMCID %s: LLM '%s' error on attempt %d: %s", pmcid, llm_name, attempt, e)
             time.sleep(sleep_time)
-    return None, error_msg
+    return None, str(e)
 
 
 def call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
@@ -159,6 +168,7 @@ def call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sle
 def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex):
     """
     Parses the LLM's response into structured output.
+    Returns a list of result dictionaries.
     """
     results = []
     if raw_llm_output and not error_log:
@@ -206,18 +216,20 @@ def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex
 def process_llm_for_pmcid_sync(row, llm_name, llm_instance, input_prompt, text_col, logger, regex):
     """
     Processes a single row for a specific LLM synchronously.
+    Returns the parsed LLM output.
     """
     pmcid, prompt = create_prompt(row, input_prompt, text_col)
-    logger.info(f"Starting processing for PMCID: {pmcid} with LLM: {llm_name}")
+    logger.info("Starting processing for PMCID: %s with LLM: %s", pmcid, llm_name)
     raw_llm_output, error_log = call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger)
     results = parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex)
-    logger.info(f"Finished processing for PMCID: {pmcid} with LLM: {llm_name}")
+    logger.info("Finished processing for PMCID: %s with LLM: %s", pmcid, llm_name)
     return results
 
 
 def process_pmcid_row_sync(row, llm_dict, input_prompt, text_col, logger, regex):
     """
     Processes a single row synchronously for all LLMs and aggregates the responses.
+    Returns aggregated results.
     """
     all_results = []
     for llm_name, llm_instance in llm_dict.items():
