@@ -15,6 +15,21 @@ from .llm_invocation import (
 
 logger = initialize_logging()
 
+def default_regex_expression():
+    """
+    Returns a compiled regex pattern for cleaning output types by removing non-alphanumeric characters.
+
+    Parameters:
+        None
+
+    Returns:
+        Pattern: A compiled regular expression pattern that matches any character except letters, numbers, underscores, or spaces.
+    """
+    return re.compile(r'[^a-zA-Z0-9_ ]')
+
+# Compile regex once at module level.
+DEFAULT_REGEX = default_regex_expression()
+
 
 def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
          temperature=0.0, llm_model=None, spark=None):
@@ -71,8 +86,8 @@ def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
     # Get the input prompt
     base_prompt = default_prompt_for_cohort_extraction()
 
-    # Compile a regex to clean output types (e.g., remove non-alphanumeric characters)
-    regex = re.compile(r'[^a-zA-Z0-9_ ]')
+    # Use the module-level compiled regex pattern
+    regex = DEFAULT_REGEX
 
     all_results = []
     for _, row in new_df.iterrows():
