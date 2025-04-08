@@ -6,19 +6,15 @@
 
 - **Data Management:**  
   Functions for loading existing Delta table data, writing aggregated results to a new Delta table, and tracking processed identifiers (PMCIDs).  
-  :contentReference[oaicite:0]{index=0}
 
 - **LLM Invocation:**  
   A set of functions to build prompts, invoke AzureChatOpenAI models synchronously with retry logic, and parse the responses into structured output.  
-  :contentReference[oaicite:1]{index=1}
 
 - **Logging Configuration:**  
   Customized logging setup with filters to allow important information (status messages and errors) to be logged while minimizing verbosity.  
-  :contentReference[oaicite:2]{index=2}
 
 - **Regex Optimization:**  
   Compiles regex expressions only once at the module level, improving performance by reusing the compiled pattern across function calls.  
-  :contentReference[oaicite:3]{index=3}
 
 ## Installation
 
@@ -31,7 +27,6 @@ If you need to install from a specific branch (for example, `feature-branch`), u
     pip install git+https://github.com/OdyOSG/llmInvocation.git@feature-branch
 
 The package requires Python 3.8 or later and depends on libraries such as pyspark, numpy, pandas, and langchain_openai among others. For full dependency details, see the [setup.py](./setup.py).  
-:contentReference[oaicite:4]{index=4}
 
 ## Usage
 
@@ -84,7 +79,6 @@ Below is an example of how you might use the package:
 
 > **Note:**  
 > When running as a standalone script (i.e. via `python main.py`), the package logs an error noting that the required parameters must be provided. It is designed to be used programmatically or as part of a larger data pipeline.  
-> :contentReference[oaicite:5]{index=5}
 
 ## Contributing
 
