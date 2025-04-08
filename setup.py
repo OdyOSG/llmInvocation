@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="llmInvocation",
+    name="llm_invocation",
     version="0.0.1",
     author="",
     author_email="",
