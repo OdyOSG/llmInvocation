@@ -1,6 +1,6 @@
 import logging
 import time
-from langchain_openai import AzureChatOpenAI # type: ignore
+from langchain_openai import AzureChatOpenAI  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -193,27 +193,6 @@ def invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, s
     return None, str(e)
 
 
-def call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
-    """
-    Wrapper for synchronous LLM invocation with retries.
-
-    Parameters:
-        llm_instance: LLM model instance that has an 'invoke' method.
-        prompt (str): The prompt text to be sent to the LLM.
-        pmcid (str): Identifier for the document/record being processed.
-        llm_name (str): Name of the LLM model.
-        logger (logging.Logger): Logger instance for logging.
-        attempts (int, optional): Number of retry attempts. Default is 5.
-        sleep_time (int or float, optional): Time to wait between retry attempts. Default is 1.
-
-    Returns:
-        tuple: A tuple containing:
-            - raw_llm_output (str or None)
-            - error_log (str or None)
-    """
-    return invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts, sleep_time)
-
-
 def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex):
     """
     Parses the LLM's raw response into a structured list of result dictionaries.
@@ -292,7 +271,7 @@ def process_llm_for_pmcid_sync(row, llm_name, llm_instance, input_prompt, text_c
     """
     pmcid, prompt = create_prompt(row, input_prompt, text_col)
     logger.info("Starting processing for PMCID: %s with LLM: %s", pmcid, llm_name)
-    raw_llm_output, error_log = call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger)
+    raw_llm_output, error_log = invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger)
     results = parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex)
     logger.info("Finished processing for PMCID: %s with LLM: %s", pmcid, llm_name)
     return results
