@@ -44,7 +44,7 @@ def main(api_key: str, df: pd.DataFrame, text_column: str, table_name: str, azur
         spark: Spark session instance.
         
     Returns:
-        pd.DataFrame: Aggregated results from the LLM processing.
+        pd.DataFrame: Aggregated results from the LLM processing. An empty DataFrame is returned if there are no new rows to process.
     """
     # Validate that there is at least one populated row in the 'methods' column.
     if not any(
@@ -67,8 +67,14 @@ def main(api_key: str, df: pd.DataFrame, text_column: str, table_name: str, azur
     # Filter out rows that have already been processed.
     new_df = df[~df["pmcid"].isin(processed_pmids)].copy()
     total_tasks = new_df.shape[0]
+
     logger.info("Skipping processing %d PMCID(s) that have already been processed.", len(processed_pmids))
     logger.info("Processing %d new PMCID(s) out of %d total.", total_tasks, df.shape[0])
+
+    # If there are no new rows to process, log and exit gracefully
+    if total_tasks == 0:
+        logger.info("No new PMCID(s) to process. Exiting gracefully without error.")
+        return pd.DataFrame()
 
     # Prepare LLM models using the provided API key and other parameters
     llm_dict = get_llm_model(
