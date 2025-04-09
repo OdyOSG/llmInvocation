@@ -1,7 +1,6 @@
 import logging
 import time
-import re
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI # type: ignore
 
 logger = logging.getLogger(__name__)
 

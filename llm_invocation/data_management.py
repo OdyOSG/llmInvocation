@@ -1,6 +1,6 @@
 import logging
-import pandas as pd
-from pyspark.sql.types import StructType, StructField, StringType
+import pandas as pd # type: ignore
+from pyspark.sql.types import StructType, StructField, StringType # type: ignore
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,5 @@
 import re
-import pandas as pd
-import logging
+import pandas as pd # type: ignore
 from .data_management import (
     initialize_logging,
     load_existing_delta_data,
