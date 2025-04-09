@@ -1,12 +1,12 @@
 import logging
-import pandas as pd # type: ignore
-from pyspark.sql.types import StructType, StructField, StringType # type: ignore
+from typing import Any, Set
+import pandas as pd  # type: ignore
+from pyspark.sql.types import StructType, StructField, StringType  # type: ignore
 
 logger = logging.getLogger(__name__)
 
-
 class ProgressAndErrorFilter(logging.Filter):
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         """
         Filters log records to allow only ERROR level logs and specific INFO logs.
 
@@ -14,7 +14,7 @@ class ProgressAndErrorFilter(logging.Filter):
             record (logging.LogRecord): The log record to be evaluated.
 
         Returns:
-            bool: True if the record is an ERROR or is an INFO message containing "[STATUS]" or "PMCID", otherwise False.
+            bool: True if the record is an ERROR or an INFO message containing "[STATUS]" or "PMCID", otherwise False.
         """
         if record.levelno >= logging.ERROR:
             return True
@@ -24,13 +24,9 @@ class ProgressAndErrorFilter(logging.Filter):
             return True
         return False
 
-
-def initialize_logging():
+def initialize_logging() -> logging.Logger:
     """
     Initializes the logging configuration and returns the root logger with a custom filter.
-
-    Parameters:
-        None
 
     Returns:
         logging.Logger: The configured root logger instance.
@@ -49,8 +45,7 @@ def initialize_logging():
     logging.getLogger("org.apache.spark").setLevel(logging.ERROR)
     return root_logger
 
-
-def load_existing_delta_data(table_name, spark):
+def load_existing_delta_data(table_name: str, spark: Any) -> pd.DataFrame:
     """
     Loads existing Delta data from a Spark table if it exists.
 
@@ -59,7 +54,7 @@ def load_existing_delta_data(table_name, spark):
         spark: The Spark session instance used to interact with Spark tables.
 
     Returns:
-        pandas.DataFrame: A DataFrame containing the existing table data; returns an empty DataFrame if the table does not exist or an error occurs.
+        pd.DataFrame: A DataFrame containing the existing table data; returns an empty DataFrame if the table does not exist or an error occurs.
     """
     try:
         if spark.catalog.tableExists(table_name):
@@ -73,18 +68,17 @@ def load_existing_delta_data(table_name, spark):
         existing_df = pd.DataFrame()
     return existing_df
 
-
-def write_results_to_delta_table(merged_df, table_name, spark):
+def write_results_to_delta_table(merged_df: pd.DataFrame, table_name: str, spark: Any) -> pd.DataFrame:
     """
     Writes merged results to a Delta table using Spark and reloads the updated data.
 
     Parameters:
-        merged_df (pandas.DataFrame): The DataFrame containing merged results to write to the table.
+        merged_df (pd.DataFrame): The DataFrame containing merged results to write to the table.
         table_name (str): The target Delta table name for saving the data.
         spark: The Spark session instance for writing to and reading from the table.
 
     Returns:
-        pandas.DataFrame: The DataFrame reloaded from the Delta table after writing the results.
+        pd.DataFrame: The DataFrame reloaded from the Delta table after writing the results.
     """
     try:
         schema = StructType([
@@ -106,16 +100,15 @@ def write_results_to_delta_table(merged_df, table_name, spark):
         logger.exception("Error writing to Delta table %s: %s", table_name, e)
     return merged_df
 
-
-def get_processed_pmids(existing_df):
+def get_processed_pmids(existing_df: pd.DataFrame) -> Set[str]:
     """
     Extracts and returns a set of processed PMCIDs from the provided DataFrame.
 
     Parameters:
-        existing_df (pandas.DataFrame): A DataFrame that may contain a 'pmcid' column.
+        existing_df (pd.DataFrame): A DataFrame that may contain a 'pmcid' column.
 
     Returns:
-        set: A set containing unique PMCIDs (str) extracted from the DataFrame; an empty set if not applicable.
+        Set[str]: A set containing unique PMCIDs extracted from the DataFrame; an empty set if not applicable.
     """
     if not existing_df.empty and "pmcid" in existing_df.columns:
         return set(existing_df["pmcid"].unique())

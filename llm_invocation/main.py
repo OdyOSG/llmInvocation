@@ -1,5 +1,6 @@
 import re
-import pandas as pd # type: ignore
+from typing import Any, Optional, Pattern
+import pandas as pd  # type: ignore
 from .data_management import (
     initialize_logging,
     load_existing_delta_data,
@@ -14,12 +15,9 @@ from .llm_invocation import (
 
 logger = initialize_logging()
 
-def default_regex_expression():
+def default_regex_expression() -> Pattern:
     """
     Returns a compiled regex pattern for cleaning output types by removing non-alphanumeric characters.
-
-    Parameters:
-        None
 
     Returns:
         Pattern: A compiled regular expression pattern that matches any character except letters, numbers, underscores, or spaces.
@@ -27,27 +25,26 @@ def default_regex_expression():
     return re.compile(r'[^a-zA-Z0-9_ ]')
 
 # Compile regex once at module level.
-DEFAULT_REGEX = default_regex_expression()
+DEFAULT_REGEX: Pattern = default_regex_expression()
 
-
-def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
-         temperature=0.0, llm_model=None, spark=None):
+def main(api_key: str, df: pd.DataFrame, text_column: str, table_name: str, azure_endpoint: str, api_version: str,
+         temperature: float = 0.0, llm_model: Optional[str] = None, spark: Any = None) -> pd.DataFrame:
     """
     Main function to process a DataFrame using LLMs and write results to a Delta table.
     
     Parameters:
         api_key (str): API key for the LLM service.
-        df (pandas.DataFrame): Input dataframe containing at least columns "pmcid" and "methods".
+        df (pd.DataFrame): Input DataFrame containing at least columns "pmcid" and "methods".
         text_column (str): Name of the column containing the text to process.
         table_name (str): Name of the Delta table for storing results.
         azure_endpoint (str): Azure endpoint for LLM.
         api_version (str): API version for the LLM.
         temperature (float, optional): Temperature setting for the LLM. Default is 0.0.
-        llm_model (str, optional): Specific LLM model to use. Default is None.
+        llm_model (Optional[str], optional): Specific LLM model to use. Default is None.
         spark: Spark session instance.
         
     Returns:
-        pandas.DataFrame: Aggregated results from the LLM processing.
+        pd.DataFrame: Aggregated results from the LLM processing.
     """
     # Validate that there is at least one populated row in the 'methods' column.
     if not any(
@@ -98,7 +95,6 @@ def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
     write_results_to_delta_table(aggregated_df, table_name, spark)
 
     return aggregated_df
-
 
 if __name__ == "__main__":
     # Note: For standalone execution, you must supply the required parameters.
