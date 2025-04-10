@@ -56,6 +56,8 @@ def main(api_key: str, df: pd.DataFrame, text_column: str, table_name: str, azur
     else:
         logger.info("The 'methods' column is properly populated.")
 
+    df['pmcid'] = df['pmcid'].astype(str)
+
     # Select relevant columns and remove rows with empty 'methods'
     df = df[["pmcid", "methods"]].copy()
     df = df[df["methods"].str.strip().str.len() > 0]
