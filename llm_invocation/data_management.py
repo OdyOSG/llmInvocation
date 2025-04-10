@@ -93,7 +93,7 @@ def write_results_to_delta_table(merged_df: pd.DataFrame, table_name: str, spark
             StructField("error_log", StringType(), True)
         ])
         df_spark = spark.createDataFrame(merged_df, schema)
-        df_spark.write.format("delta").mode("overwrite").saveAsTable(table_name)
+        df_spark.write.format("delta").mode("append").saveAsTable(table_name)
         merged_df = spark.sql(f"SELECT * FROM {table_name}").toPandas()
         logger.debug("Results written to Spark table: %s", table_name)
     except Exception as e:

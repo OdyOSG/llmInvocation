@@ -56,7 +56,7 @@ def main(api_key: str, df: pd.DataFrame, text_column: str, table_name: str, azur
     else:
         logger.info("The 'methods' column is properly populated.")
 
-    df['pmcid'] = df['pmcid'].astype(str)
+    df.loc[:, 'pmcid'] = df['pmcid'].astype(str)
 
     # Select relevant columns and remove rows with empty 'methods'
     df = df[["pmcid", "methods"]].copy()
@@ -70,7 +70,7 @@ def main(api_key: str, df: pd.DataFrame, text_column: str, table_name: str, azur
     new_df = df[~df["pmcid"].isin(processed_pmids)].copy()
     total_tasks = new_df.shape[0]
 
-    logger.info("Skipping processing %d PMCID(s) that have already been processed.", len(processed_pmids))
+    logger.info("%d PMCID(s) that have already been processed can be skipped if it overlaps with the current input.", len(processed_pmids))
     logger.info("Processing %d new PMCID(s) out of %d total.", total_tasks, df.shape[0])
 
     # If there are no new rows to process, log and exit gracefully
