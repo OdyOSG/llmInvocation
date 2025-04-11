@@ -1,6 +1,6 @@
 import re
-import pandas as pd
-import logging
+from typing import Any, Optional, Pattern
+import pandas as pd  # type: ignore
 from .data_management import (
     initialize_logging,
     load_existing_delta_data,
@@ -15,25 +15,36 @@ from .llm_invocation import (
 
 logger = initialize_logging()
 
+def default_regex_expression() -> Pattern:
+    """
+    Returns a compiled regex pattern for cleaning output types by removing non-alphanumeric characters.
 
-def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
-         temperature=0.0, llm_model=None, spark=None):
+    Returns:
+        Pattern: A compiled regular expression pattern that matches any character except letters, numbers, underscores, or spaces.
+    """
+    return re.compile(r'[^a-zA-Z0-9_ ]')
+
+# Compile regex once at module level.
+DEFAULT_REGEX: Pattern = default_regex_expression()
+
+def main(api_key: str, df: pd.DataFrame, text_column: str, table_name: str, azure_endpoint: str, api_version: str,
+         temperature: float = 0.0, llm_model: Optional[str] = None, spark: Any = None) -> pd.DataFrame:
     """
     Main function to process a DataFrame using LLMs and write results to a Delta table.
     
     Parameters:
         api_key (str): API key for the LLM service.
-        df (pandas.DataFrame): Input dataframe containing at least columns "pmcid" and "methods".
+        df (pd.DataFrame): Input DataFrame containing at least columns "pmcid" and "methods".
         text_column (str): Name of the column containing the text to process.
         table_name (str): Name of the Delta table for storing results.
         azure_endpoint (str): Azure endpoint for LLM.
         api_version (str): API version for the LLM.
         temperature (float, optional): Temperature setting for the LLM. Default is 0.0.
-        llm_model (str, optional): Specific LLM model to use. Default is None.
+        llm_model (Optional[str], optional): Specific LLM model to use. Default is None.
         spark: Spark session instance.
         
     Returns:
-        pandas.DataFrame: Aggregated results from the LLM processing.
+        pd.DataFrame: Aggregated results from the LLM processing. An empty DataFrame is returned if there are no new rows to process.
     """
     # Validate that there is at least one populated row in the 'methods' column.
     if not any(
@@ -44,6 +55,8 @@ def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
         raise ValueError("The 'methods' column must have at least one populated row.")
     else:
         logger.info("The 'methods' column is properly populated.")
+
+    df.loc[:, 'pmcid'] = df['pmcid'].astype(str)
 
     # Select relevant columns and remove rows with empty 'methods'
     df = df[["pmcid", "methods"]].copy()
@@ -56,8 +69,14 @@ def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
     # Filter out rows that have already been processed.
     new_df = df[~df["pmcid"].isin(processed_pmids)].copy()
     total_tasks = new_df.shape[0]
-    logger.info("Skipping processing %d PMCID(s) that have already been processed.", len(processed_pmids))
+
+    logger.info("%d PMCID(s) that have already been processed can be skipped if it overlaps with the current input.", len(processed_pmids))
     logger.info("Processing %d new PMCID(s) out of %d total.", total_tasks, df.shape[0])
+
+    # If there are no new rows to process, log and exit gracefully
+    if total_tasks == 0:
+        logger.info("No new PMCID(s) to process. Exiting gracefully without error.")
+        return pd.DataFrame()
 
     # Prepare LLM models using the provided API key and other parameters
     llm_dict = get_llm_model(
@@ -71,8 +90,8 @@ def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
     # Get the input prompt
     base_prompt = default_prompt_for_cohort_extraction()
 
-    # Compile a regex to clean output types (e.g., remove non-alphanumeric characters)
-    regex = re.compile(r'[^a-zA-Z0-9_ ]')
+    # Use the module-level compiled regex pattern
+    regex = DEFAULT_REGEX
 
     all_results = []
     for _, row in new_df.iterrows():
@@ -84,7 +103,6 @@ def main(api_key, df, text_column, table_name, azure_endpoint, api_version,
     write_results_to_delta_table(aggregated_df, table_name, spark)
 
     return aggregated_df
-
 
 if __name__ == "__main__":
     # Note: For standalone execution, you must supply the required parameters.

@@ -9,7 +9,6 @@ from .llm_invocation import (
     get_llm_model,
     create_prompt,
     invoke_llm_sync,
-    call_llm_sync,
     parse_llm_response,
     process_llm_for_pmcid_sync,
     process_pmcid_row_sync
@@ -24,7 +23,6 @@ __all__ = [
     "get_llm_model",
     "create_prompt",
     "invoke_llm_sync",
-    "call_llm_sync",
     "parse_llm_response",
     "process_llm_for_pmcid_sync",
     "process_pmcid_row_sync",

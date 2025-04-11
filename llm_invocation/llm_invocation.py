@@ -1,16 +1,16 @@
 import logging
 import time
-import re
-from langchain_openai import AzureChatOpenAI
+from typing import Any, Dict, List, Optional, Tuple, Union
+from langchain_openai import AzureChatOpenAI  # type: ignore
 
 logger = logging.getLogger(__name__)
 
-
-def default_prompt_for_cohort_extraction():
+def default_prompt_for_cohort_extraction() -> str:
     """
-    Returns the prompt instructions for extracting cohort details from the Methods/Materials section
-    of a scientific article. The prompt instructs the LLM to parse the text into 27 specific categories,
-    each corresponding to one row in a single markdown table.
+    Returns the prompt instructions for extracting cohort details from the Methods/Materials section of a scientific article.
+
+    Returns:
+        str: A formatted string containing the detailed prompt instructions to extract 27 specific categories in a markdown table.
     """
     prompt = """
     **SYSTEM INSTRUCTIONS (FOLLOW EXACTLY)**
@@ -71,10 +71,12 @@ def default_prompt_for_cohort_extraction():
     """
     return prompt.strip()
 
-
-def get_llm_model(api_key, azure_endpoint, api_version, temperature=0.0, llm_model=None):
+def get_llm_model(api_key: str, azure_endpoint: str, api_version: str, temperature: float = 0.0, llm_model: Optional[str] = None) -> Dict[str, Any]:
     """
-    Returns a dictionary of LLM models based on provided parameters.
+    Constructs and returns a dictionary of LLM model instances based on the provided parameters.
+
+    Returns:
+        Dict[str, Any]: A dictionary mapping model names to their respective AzureChatOpenAI instance.
     """
     if llm_model is None:
         llm_dict = {
@@ -118,31 +120,39 @@ def get_llm_model(api_key, azure_endpoint, api_version, temperature=0.0, llm_mod
         llm_dict = {}
     return llm_dict
 
+def create_prompt(row: Union[Dict[str, Any], Any], input_prompt: str, text_col: str) -> Tuple[str, str]:
+    """
+    Combines the base prompt with row-specific text and retrieves the PMCID.
 
-def create_prompt(row, input_prompt, text_col):
+    Returns:
+        Tuple[str, str]: A tuple containing the PMCID and the combined prompt.
     """
-    Combines the base prompt with row-specific text.
-    Returns the PMCID and combined prompt.
-    """
-    pmcid = row["pmcid"]
-    text = row.get(text_col, "")
-    prompt = f"{input_prompt}\n\n{text}"
+    pmcid: str = row["pmcid"]
+    text: str = row.get(text_col, "")
+    prompt: str = f"{input_prompt}\n\n{text}"
     return pmcid, prompt
 
-
-def invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
+def invoke_llm_sync(
+    llm_instance: Any, 
+    prompt: str, 
+    pmcid: str, 
+    llm_name: str, 
+    logger: logging.Logger, 
+    attempts: int = 5, 
+    sleep_time: Union[int, float] = 1
+) -> Tuple[Optional[str], Optional[str]]:
     """
-    Synchronously calls an LLM instance with retries on error.
-    Returns the raw LLM output and error log (if any).
+    Synchronously calls an LLM instance with a retry mechanism on error.
+
+    Returns:
+        Tuple[Optional[str], Optional[str]]: A tuple containing the raw LLM output and error message.
     """
     for attempt in range(1, attempts + 1):
         logger.debug("PMCID %s: Attempt %d for LLM '%s'.", pmcid, attempt, llm_name)
         try:
             start = time.time()
             output_obj = llm_instance.invoke(prompt)
-            raw_llm_output = (
-                output_obj.content if hasattr(output_obj, "content") else str(output_obj)
-            )
+            raw_llm_output: str = output_obj.content if hasattr(output_obj, "content") else str(output_obj)
             elapsed = time.time() - start
             logger.debug(
                 "PMCID %s: LLM '%s' succeeded in %.2f sec on attempt %d.",
@@ -157,20 +167,21 @@ def invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, s
             time.sleep(sleep_time)
     return None, str(e)
 
+def parse_llm_response(
+    raw_llm_output: Optional[str], 
+    pmcid: str, 
+    llm_name: str, 
+    prompt: str, 
+    error_log: Optional[str], 
+    regex: Any
+) -> List[Dict[str, Any]]:
+    """
+    Parses the LLM's raw response into a structured list of result dictionaries.
 
-def call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts=5, sleep_time=1):
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries representing the parsed response.
     """
-    Wrapper for synchronous LLM invocation.
-    """
-    return invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger, attempts, sleep_time)
-
-
-def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex):
-    """
-    Parses the LLM's response into structured output.
-    Returns a list of result dictionaries.
-    """
-    results = []
+    results: List[Dict[str, Any]] = []
     if raw_llm_output and not error_log:
         for line in raw_llm_output.splitlines():
             line = line.strip()
@@ -183,10 +194,10 @@ def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex
                     continue
                 if set(parts[2].strip()) == {"-"} or set(parts[3].strip()) == {"-"}:
                     continue
-                category = parts[1].strip()
-                verbatim_output = parts[2].strip()
-                interpretation = parts[3].strip()
-                cleaned_output_type = regex.sub("", category)
+                category: str = parts[1].strip()
+                verbatim_output: str = parts[2].strip()
+                interpretation: str = parts[3].strip()
+                cleaned_output_type: str = regex.sub("", category)
                 results.append({
                     "pmcid": pmcid,
                     "llm": llm_name,
@@ -212,37 +223,54 @@ def parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex
         })
     return results
 
-
-def process_llm_for_pmcid_sync(row, llm_name, llm_instance, input_prompt, text_col, logger, regex):
+def process_llm_for_pmcid_sync(
+    row: Union[Dict[str, Any], Any], 
+    llm_name: str, 
+    llm_instance: Any, 
+    input_prompt: str, 
+    text_col: str, 
+    logger: logging.Logger, 
+    regex: Any
+) -> List[Dict[str, Any]]:
     """
-    Processes a single row for a specific LLM synchronously.
-    Returns the parsed LLM output.
+    Processes a single row for a specific LLM synchronously and returns the parsed result.
+
+    Returns:
+        List[Dict[str, Any]]: A list of result dictionaries.
     """
     pmcid, prompt = create_prompt(row, input_prompt, text_col)
     logger.info("Starting processing for PMCID: %s with LLM: %s", pmcid, llm_name)
-    raw_llm_output, error_log = call_llm_sync(llm_instance, prompt, pmcid, llm_name, logger)
+    raw_llm_output, error_log = invoke_llm_sync(llm_instance, prompt, pmcid, llm_name, logger)
     results = parse_llm_response(raw_llm_output, pmcid, llm_name, prompt, error_log, regex)
     logger.info("Finished processing for PMCID: %s with LLM: %s", pmcid, llm_name)
     return results
 
+def process_pmcid_row_sync(
+    row: Union[Dict[str, Any], Any], 
+    llm_dict: Dict[str, Any], 
+    input_prompt: str, 
+    text_col: str, 
+    logger: logging.Logger, 
+    regex: Any
+) -> List[Dict[str, Any]]:
+    """
+    Processes a single row synchronously across all available LLMs and aggregates their responses.
 
-def process_pmcid_row_sync(row, llm_dict, input_prompt, text_col, logger, regex):
+    Returns:
+        List[Dict[str, Any]]: An aggregated list of result dictionaries from all LLMs.
     """
-    Processes a single row synchronously for all LLMs and aggregates the responses.
-    Returns aggregated results.
-    """
-    all_results = []
+    all_results: List[Dict[str, Any]] = []
     for llm_name, llm_instance in llm_dict.items():
         res = process_llm_for_pmcid_sync(row, llm_name, llm_instance, input_prompt, text_col, logger, regex)
         all_results.extend(res)
-    groups = {}
+    groups: Dict[Tuple[str, str, Optional[str]], Dict[str, Any]] = {}
     for res in all_results:
         key = (res["pmcid"], res["llm"], res["output_type"])
         if key not in groups:
             groups[key] = {"verbatim_outputs": set(), "interpretations": set(), "base": res}
         groups[key]["verbatim_outputs"].add(res["verbatim_output"])
         groups[key]["interpretations"].add(res["interpretation"])
-    aggregated_results = []
+    aggregated_results: List[Dict[str, Any]] = []
     for key, value in groups.items():
         base = value["base"]
         aggregated_results.append({
