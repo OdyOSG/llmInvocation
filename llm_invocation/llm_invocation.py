@@ -87,13 +87,6 @@ def get_llm_model(api_key: str, azure_endpoint: str, api_version: str, temperatu
                 model="anthropic.claude-v3-sonnet",
                 temperature=temperature,
             ),
-            "gpt-4-5": AzureChatOpenAI(
-                api_key=api_key,
-                api_version=api_version,
-                azure_endpoint=azure_endpoint,
-                model="gpt-4.5-preview-2025-02-27",
-                temperature=temperature,
-            ),
             "deepseek-r1": AzureChatOpenAI(
                 api_key=api_key,
                 api_version=api_version,
