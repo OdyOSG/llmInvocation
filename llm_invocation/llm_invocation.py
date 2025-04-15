@@ -87,13 +87,20 @@ def get_llm_model(api_key: str, azure_endpoint: str, api_version: str, temperatu
                 model="anthropic.claude-v3-sonnet",
                 temperature=temperature,
             ),
-            "gpt-4o-full": AzureChatOpenAI(
+            "gpt-4-5": AzureChatOpenAI(
                 api_key=api_key,
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
-                model="gpt-4o",
+                model="gpt-4.5-preview-2025-02-27",
                 temperature=temperature,
             ),
+            "deepseek-r1": AzureChatOpenAI(
+                api_key=api_key,
+                api_version=api_version,
+                azure_endpoint=azure_endpoint,
+                model="deepseek-r1",
+                temperature=temperature,
+            )
         }
     elif llm_model == "claude":
         llm_dict = {
@@ -105,13 +112,13 @@ def get_llm_model(api_key: str, azure_endpoint: str, api_version: str, temperatu
                 temperature=temperature,
             )
         }
-    elif llm_model == "gpt-4o-full":
+    elif llm_model == "gpt-4-5":
         llm_dict = {
-            "gpt-4o-full": AzureChatOpenAI(
+            "gpt-4-5": AzureChatOpenAI(
                 api_key=api_key,
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
-                model="gpt-4o",
+                model="gpt-4.5-preview-2025-02-27",
                 temperature=temperature,
             )
         }
