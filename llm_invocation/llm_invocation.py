@@ -105,13 +105,13 @@ def get_llm_model(api_key: str, azure_endpoint: str, api_version: str, temperatu
                 temperature=temperature,
             )
         }
-    elif llm_model == "gpt-4-5":
+    elif llm_model == "deepseek-r1":
         llm_dict = {
-            "gpt-4-5": AzureChatOpenAI(
+            "deepseek-r1": AzureChatOpenAI(
                 api_key=api_key,
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
-                model="gpt-4.5-preview-2025-02-27",
+                model="deepseek-r1",
                 temperature=temperature,
             )
         }
