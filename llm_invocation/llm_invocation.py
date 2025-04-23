@@ -20,6 +20,7 @@ def default_prompt_for_cohort_extraction() -> str:
     4. For each category, do the following:
        - Search the provided text to retrieve relevant direct quotes (i.e., the exact wording).
        - If multiple relevant pieces appear, combine them into one string **separated by line breaks** (e.g., using `\n`).
+       - **Escape any vertical bar `|` inside the quote as `\\|`, and escape inner double-quotes `"` as `\"` so the markdown table renders correctly.**  
        - Place that combined string in the **verbatim** column (still enclosed in double quotes if you wish).
        - In the **interpretation** column, briefly interpret or clarify the content for that category.
     5. If a category is **mentioned** but does **not** include any direct quotes, place `""` in the **verbatim** column and briefly explain in the **interpretation** column.
