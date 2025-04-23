@@ -32,7 +32,7 @@ def default_prompt_for_cohort_extraction() -> str:
          `| category | verbatim | interpretation |`
        - A divider row exactly like this: 
          `|----------|----------|----------------|`
-       - One row for each of the 27 categories below.
+       - **The 27 body rows must appear in the exact order listed in Section 8 below. Do not reorder, omit, or add rows.**  
        - **No numbering, code blocks, or extra text** of any kind before or after the table.
     8. **CATEGORIES** (one row per item, in any order):
        - medical_codes 
@@ -67,7 +67,7 @@ def default_prompt_for_cohort_extraction() -> str:
        - Do not produce any text outside the markdown table.
        - Do not include numbering, code fences, or extraneous markdown elements.
     **USER PROMPT**:
-       Extract the relevant details from the following text based on the categories above. Provide each category as one row in the single markdown table described, following the rules exactly.
+       Extract the relevant details from the following text based on the categories above. Provide each category as one row—in the fixed order—within the single markdown table described, following the rules exactly.
     """
     return prompt.strip()
 
