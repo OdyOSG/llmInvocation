@@ -10,12 +10,12 @@ def default_prompt_for_cohort_extraction() -> str:
     Returns the prompt instructions for extracting cohort details from the Methods/Materials section of a scientific article.
 
     Returns:
-        str: A formatted string containing the detailed prompt instructions to extract 30 specific categories in a markdown table.
+        str: A formatted string containing the detailed prompt instructions to extract 58 specific categories in a markdown table.
     """
     prompt = """
     **SYSTEM INSTRUCTIONS (FOLLOW EXACTLY)**
     1. You are given the Methods/Materials section of a scientific article describing real-world patient selection and cohort creation.
-    2. You must extract information into exactly 30 specific categories (listed below). Each category must correspond to one row in **a single markdown table**.
+    2. You must extract information into exactly 58 specific categories (listed below). Each category must correspond to one row in **a single markdown table**.
     3. You may **not** add or remove any categories beyond those specified.
     4. For each category, do the following:
        - Search the provided text to retrieve relevant direct quotes (i.e., the exact wording).
@@ -33,7 +33,7 @@ def default_prompt_for_cohort_extraction() -> str:
          `| category | verbatim | interpretation |`
        - A divider row exactly like this: 
          `|----------|----------|----------------|`
-       - **The 30 body rows must appear in the exact order listed in Section 8 below. Do not reorder, omit, or add rows.**  
+       - **The 58 body rows must appear in the exact order listed in Section 8 below. Do not reorder, omit, or add rows.**  
        - **No numbering, code blocks, or extra text** of any kind before or after the table.
     8. **CATEGORIES** (one row per item, fixed order):
         *Source Population & Eligibility*
