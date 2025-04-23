@@ -36,36 +36,66 @@ def default_prompt_for_cohort_extraction() -> str:
        - **The 30 body rows must appear in the exact order listed in Section 8 below. Do not reorder, omit, or add rows.**  
        - **No numbering, code blocks, or extra text** of any kind before or after the table.
     8. **CATEGORIES** (one row per item, fixed order):
-        1. **medical_codes** – Any structured alphanumeric vocabulary that maps clinical concepts (e.g., ICD-10 “E11.\*”, SNOMED CT 22298006, CPT-4 “99213”, HCPCS “J3490”, ATC “A10BA02”, RxNorm (drugs) and LOINC (labs)); often grouped into “code lists” or “value sets” and used to flag diagnoses, procedures, or drugs in electronic data.
+        *Source Population & Eligibility*
+        1. **population** – Overall source population frame (e.g., “all adults with ≥1 encounter in XXX database”).
         2. **demographic_restriction** – A priori filters on age (e.g., ≥18 y), sex, race/ethnicity, socioeconomic status, or other human attributes (a.k.a. eligibility strata, sampling frame limits).
         3. **entry_event** – The recorded trigger (“qualifying event,” “anchor,” “index encounter”)—such as a diagnosis code, procedure, prescription, or lab result—that grants cohort membership and pins the timeline.
         4. **index_date_definition** – Rule converting the entry event (or nearest related record) into a single calendar date (“time 0”, “t₀”) from which exposure, washout, and follow-up windows are calculated.
-        5. **inclusion_rule** – Additional eligibility clauses (e.g., ≥365 days continuous enrollment, specific clinical history) that must be satisfied **after** the entry event to remain in the analytic cohort.
-        6. **exclusion_rule** – Disqualifying conditions at or before index (e.g., prior outcome, contraindicated therapy) that remove otherwise eligible individuals; synonyms: “pre-index exclusion,” “restriction criterion.”
-        7. **exit_criterion** – Pre-specified events or cut-offs (death, disenrollment, treatment stop, database end, fixed k-years) that censor or terminate person-time.
-        8. **attrition_criteria** – The ordered set of screening steps (often visualized in a CONSORT-style flow diagram) with counts of participants dropped at each stage (“N after filter”).
-        9. **washout_period** – A look-back period or interval (commonly 6–12 months) with **no** exposure or outcome records, ensuring incident/new-user status and mitigating left-truncation bias.
-        10. **follow_up_period** – Observational span **after** index during which outcomes are accrued; may be fixed (e.g., 180 days) or variable until an exit criterion (“open-ended follow-up”).
-        11. **exposure_definition** – Operational logic translating raw records into an exposure flag: drug name(s), dose, formulation, days’ supply, permissible gaps (“grace period”), route, or device identifiers.
-        12. **treatment_definition** – Granular description of the therapeutic regimen (line of therapy, combination rules, titration schedule) apart from simple exposure status.
-        13. **outcome_definition** – Case-finding algorithm using codes, laboratory thresholds, narrative NLP, or chart review triggers to capture the event of interest with temporal rule logic if specified; may specify positive predictive value (PPV) when known.
-        14. **severity_definition** – Quantitative or categorical grading of disease or adverse-event intensity (e.g., NIHSS > 15 = severe stroke, CTCAE Grade 3-4), sometimes derived from composite scores.
-        15. **outcome_ascertainment** – Source(s) and workflow for verifying outcome events—claims linkage, EHR abstraction, blinded adjudication committee—including any lag windows for data maturation.
-        16. **study_period** – Inclusive calendar bounds (start YYYY-MM-DD to end YYYY-MM-DD) within which entry events, exposures, and outcomes are eligible; distinguishes historical look-back from prospective accrual.
-        17. **study_design** – High-level analytic or study design architecture (retrospective cohort, new-user active-comparator, case-control, SCCS, self-controlled risk-interval) that dictates temporality and confounding mitigation strategy.  
-        18. **comparator_cohort** – Reference group (active comparator drug, placebo, usual-care, external control) constructed under parallel rules to the exposure cohort, enabling relative effect estimation.
-        19. **covariate_adjustment** – Confounding control via multivariable regression, propensity score matching/weighting, high-dimensional PS, IPTW, or doubly robust estimators; usually has covariate time window (baseline vs. time-varying).
-        20. **statistical_analysis** – Core modeling and inference plan (e.g., Cox proportional-hazards with robust variance, Poisson regression for rates, Kaplan–Meier for survival) plus software/versions.
-        21. **sensitivity_analysis** – Pre-planned perturbations (vary washout length, redefine exposure, lag outcome, exclude early events) to test robustness; may include quantitative bias analysis or negative controls.
-        22. **algorithm_validation** – Empirical assessment of code-based algorithms against a gold standard (chart review, registry) reporting PPV, sensitivity, specificity, or F-measure.
-        23. **data_provenance** – End-to-end lineage of data elements: original source, extraction, transformation logic (ETL), versioning, audit trails—supporting reproducibility and traceability.
-        24. **data_source_type** – Macro-level classification of the underlying repository (administrative claims, integrated EHR network, disease registry, national survey, multi-country distributed network).
-        25. **population** – Overall source population frame (e.g., “all adults with ≥1 encounter in XXX database”).
-        26. **healthcare_setting** – Care context reflected in the records (primary care clinic, inpatient hospital, ED, specialty outpatient, integrated delivery system), affecting coding density and capture completeness.
-        27. **data_access** – Statement of availability and governance (open data portal, public use file, data use agreement, secure enclave, upon reasonable request) specifying who may obtain the analytic dataset.
-        28. **ethics_approval** – Documentation of IRB/REC review or exemption, with protocol ID, governing regulations (e.g., 45 CFR 46), and affirmation of Declaration of Helsinki adherence.
-        29. **indication** – Disease or clinical scenario motivating exposure (e.g., “type 2 diabetes”).
-        30. **time_at_risk** – Window during which outcomes are attributed (e.g., “index to 365 days”).
+        5. **indication** – Disease or clinical scenario motivating exposure (e.g., “type 2 diabetes”).
+        6. **inclusion_rule** – Additional eligibility clauses (e.g., ≥365 days continuous enrollment, specific clinical history) that must be satisfied **after** the entry event to remain in the analytic cohort.
+        7. **exclusion_rule** – Disqualifying conditions at or before index (e.g., prior outcome, contraindicated therapy) that remove otherwise eligible individuals; synonyms: “pre-index exclusion,” “restriction criterion.”
+        8. **exit_criterion** – Pre-specified events or cut-offs (death, disenrollment, treatment stop, database end, fixed k-years) that censor or terminate person-time.
+        9. **attrition_criteria** – The ordered set of screening steps (often visualized in a CONSORT-style flow diagram) with counts of participants dropped at each stage (“N after filter”).
+        10. **medical_codes** – Any structured alphanumeric vocabulary that maps clinical concepts (e.g., ICD-10 “E11.\*”, SNOMED CT 22298006, CPT-4 “99213”, HCPCS “J3490”, ATC “A10BA02”, RxNorm (drugs) and LOINC (labs)); often grouped into “code lists” or “value sets” and used to flag diagnoses, procedures, or drugs in electronic data.
+        11. **study_period** – Inclusive calendar bounds (start YYYY-MM-DD to end YYYY-MM-DD) within which entry events, exposures, and outcomes are eligible; distinguishes historical look-back from prospective accrual.
+        12. **washout_period** – A look-back period or interval (commonly 6–12 months) with **no** exposure or outcome records, ensuring incident/new-user status and mitigating left-truncation bias.
+        13. **follow_up_period** – Observational span **after** index during which outcomes are accrued; may be fixed (e.g., 180 days) or variable until an exit criterion (“open-ended follow-up”).
+        14. **time_at_risk** – Window during which outcomes are attributed (e.g., “index to 365 days”).
+        15. **exposure_definition** – Operational logic translating raw records into an exposure flag: drug name(s), dose, formulation, days’ supply, permissible gaps (“grace period”), route, or device identifiers. Include medical codes when available.
+        16. **treatment_definition** – Granular description of the therapeutic regimen (line of therapy, combination rules, titration schedule) apart from simple exposure status.  Include medical codes when available.
+        17. **comparator_cohort** – Reference group (active comparator drug, placebo, usual-care, external control) constructed under parallel rules to the exposure cohort, enabling relative effect estimation. Include medical codes when available.
+        18. **outcome_definition** – Case-finding algorithm using codes, laboratory thresholds, narrative NLP, or chart review triggers to capture the event of interest with temporal rule logic if specified; may specify positive predictive value (PPV) when known.
+        19. **severity_definition** – Quantitative or categorical grading of disease or adverse-event intensity (e.g., NIHSS > 15 = severe stroke, CTCAE Grade 3-4), sometimes derived from composite scores.
+        20. **outcome_ascertainment** – Source(s) and workflow for verifying outcome events—claims linkage, EHR abstraction, blinded adjudication committee—including any lag windows for data maturation.
+        21. **algorithm_validation** – Empirical assessment of code-based algorithms against a gold standard (chart review, registry) reporting PPV, sensitivity, specificity, or F-measure.
+        22. **study_design** – High-level analytic or study design architecture (retrospective cohort, new-user active-comparator, case-control, SCCS, self-controlled risk-interval) that dictates temporality and confounding mitigation strategy. 
+        23. **covariate_adjustment** – Confounding control via multivariable regression, propensity score matching/weighting, high-dimensional PS, IPTW, or doubly robust estimators; usually has covariate time window (baseline vs. time-varying).
+        24. **statistical_analysis** – Core modeling and inference plan (e.g., Cox proportional-hazards with robust variance, Poisson regression for rates, Kaplan–Meier for survival) plus software/versions.
+        25. **sensitivity_analysis** – Pre-planned perturbations (vary washout length, redefine exposure, lag outcome, exclude early events) to test robustness; may include quantitative bias analysis or negative controls.
+        26. **data_source_type** – Macro-level classification of the underlying repository (administrative claims, integrated EHR network, disease registry, national survey, multi-country distributed network). 
+        27. **data_provenance** – End-to-end lineage of data elements: original source, extraction, transformation logic (ETL), versioning, audit trails—supporting reproducibility and traceability.
+        28. **healthcare_setting** – Care context reflected in the records (primary care clinic, inpatient hospital, ED, specialty outpatient, integrated delivery system), affecting coding density and capture completeness.
+        29. **data_access** – Statement of availability and governance (open data portal, public use file, data use agreement, secure enclave, upon reasonable request) specifying who may obtain the analytic dataset.
+        30. **ethics_approval** – Documentation of IRB/REC review or exemption, with protocol ID, governing regulations (e.g., 45 CFR 46), and affirmation of Declaration of Helsinki adherence.
+       31. **funding_source** – Grant numbers, industry sponsorship, “unrestricted educational grant.”  
+       32. **conflict_of_interest** – Author disclosures, “consulting fees,” “honoraria,” equity holdings.  
+       33. **author_affiliations** – Country/region clues, multisite collaborations.  
+       34. **study_objective** – Primary aim / hypothesis, “to estimate,” “to compare.”  
+       35. **rationale** – Clinical or policy motivation, gap statement.  
+       36. **sample_size_calculation** – Power analysis, assumed effect size, Type I error.  
+       37. **randomization_scheme** – For randomized RWE hybrids; block, stratified, simple.  
+       38. **blinding_masking** – Participant, investigator, assessor blinding status.  
+       39. **data_linkage_method** – Probabilistic vs deterministic linkage across sources.  
+       40. **missing_data_handling** – Multiple imputation, complete-case, LOCF.  
+       41. **quality_control** – Data cleaning rules, duplicate removal, range checks.  
+       42. **time_at_risk_definition** – Exact start/stop logic distinct from follow-up window (“risk window” for SCCS).  
+       43. **immortal_time_handling** – Methods to avoid immortal-time bias (time-dependent exposure coding, landmarking).  
+       44. **negative_control_exposures_outcomes** – Specified falsification endpoints or exposures.  
+       45. **causal_framework** – Target-trial emulation, causal diagram, G-methods notation.
+       46. **software_environment** – R/4.3.2, SAS v9.4, Python/3.11 with packages.  
+       47. **multiple_testing_correction** – Bonferroni, FDR, Holm.  
+       48. **heterogeneity_assessment** – I², Cochran’s Q, subgroup interaction terms.  
+       49. **instrumental_variable** – Relevance/validity checks, F-statistics.  
+       50. **effect_measure_modification** – Pre-specified interaction terms, stratified analyses.  
+       51. **summary_baseline_characteristics** – Table 1 demographics/comorbidities snippet.  
+       52. **effect_estimates** – HRs, ORs, RRs, RD with 95 % CI.  
+       53. **absolute_risk_numbers** – Incidence rates per 1 000 PY, NNT, NNH.  
+       54. **adverse_events_profile** – Safety outcomes, SAE counts.  
+       55. **event_counts_flow** – Number at risk, events, censoring, KM curve data.  
+       56. **limitations** – Internal/external validity threats (“residual confounding,” “coding error”).  
+       57. **generalizability** – Applicability to other settings/populations.  
+       58. **future_research** – Suggested next steps, unmet needs.
+
 
     9. **PROHIBITED**:
        - Do not add any extra rows for categories not listed.
